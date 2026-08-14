@@ -1,14 +1,47 @@
 # Sauce Demo Playwright Automation
 
-This project contains a Playwright JavaScript test framework that exercises the public Sauce Demo website. It logs in, randomly selects one product from the inventory, adds it to the cart, and completes the checkout flow.
+[![Playwright Tests](https://github.com/akash0107/sauce-demo-playwright/actions/workflows/playwright.yml/badge.svg)](https://github.com/akash0107/sauce-demo-playwright/actions/workflows/playwright.yml)
+
+An end-to-end Playwright test suite for [Sauce Demo](https://www.saucedemo.com/), the public e-commerce practice site. A single scenario logs in, randomly picks one product from the inventory, adds it to the cart, and drives the checkout flow through to confirmation — built with a page object model so the test itself reads like a spec, not a script.
+
+## Why this exists
+
+It's a small, self-contained reference for structuring a Playwright suite the way a real project would: page objects for maintainability, a randomized-but-deterministic flow to prove the automation isn't just matching a fixed happy path, HTML/trace/video artifacts on failure, and a CI workflow that runs the suite on every push and pull request.
 
 ## Features
 
-- Best-practice Playwright configuration
-- Page object model for readability and maintainability
-- Randomized product selection for robust flow validation
-- End-to-end checkout automation against `https://www.saucedemo.com/`
-- HTML report generation for local viewing
+- **Page object model** — `LoginPage`, `InventoryPage`, `CartPage`, and `CheckoutPage` each own their locators and actions, keeping the test file declarative.
+- **Randomized product selection** — a different item is added to the cart on every run, so the test validates behavior rather than one hard-coded path.
+- **Full checkout flow** — login → inventory → cart → checkout details → order confirmation, with assertions at every URL transition.
+- **Rich failure diagnostics** — traces on first retry, screenshots on failure, and video retained on failure, all wired through the Playwright HTML reporter.
+- **CI-ready** — a GitHub Actions workflow ([`.github/workflows/playwright.yml`](.github/workflows/playwright.yml)) installs dependencies and runs the suite on `push`/`pull_request`, uploading the HTML report as a build artifact.
+
+## Tech stack
+
+| | |
+|---|---|
+| Test framework | [Playwright Test](https://playwright.dev/) `^1.54` |
+| Language | JavaScript (ES modules) |
+| Browser | Chromium (Desktop Chrome profile) |
+| CI | GitHub Actions |
+| Target app | [saucedemo.com](https://www.saucedemo.com/) |
+
+## Project structure
+
+```text
+.
+├── page-objects/
+│   ├── LoginPage.js       # Login form interactions
+│   ├── InventoryPage.js   # Product listing + random selection
+│   ├── CartPage.js        # Cart contents + checkout entry point
+│   └── CheckoutPage.js    # Checkout form + order confirmation
+├── tests/
+│   └── sauce-demo.spec.js # The end-to-end purchase flow
+├── .github/workflows/
+│   └── playwright.yml     # CI: install, run tests, upload HTML report
+├── playwright.config.js   # Browser, timeouts, reporter, artifact settings
+└── package.json
+```
 
 ## Prerequisites
 
@@ -17,92 +50,49 @@ This project contains a Playwright JavaScript test framework that exercises the 
 
 ## Setup
 
-1. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-2. Install Playwright browsers:
-
-   ```bash
-   npx playwright install --with-deps chromium
-   ```
-
-3. If the npm registry is blocked in your environment, ensure your local registry access is allowed before installation.
-
-## Run the test
-
 ```bash
-npm test
+# 1. Install dependencies
+npm install
+
+# 2. Install the Chromium browser (with OS-level deps)
+npx playwright install --with-deps chromium
 ```
 
-To run in headed mode:
+If your npm registry access is restricted, make sure it's allowed before running the install.
+
+## Running the tests
 
 ```bash
-npm run test:headed
+npm test              # run the suite
+npm run test:headed   # run with the browser window visible
+npm run test:debug    # run with Playwright Inspector
+npm run report        # open the last HTML report
 ```
 
-To view the HTML report:
-
-```bash
-npm run report
-```
+> **Note:** `playwright.config.js` currently sets `headless: false`, so the browser window is visible by default even via `npm test`. Tests also run with `--workers=1` (serial) rather than in parallel — useful for watching the flow locally, but worth revisiting for CI, since GitHub Actions runners have no display server and headed Chromium typically needs a virtual framebuffer (e.g. `xvfb-run`) to launch there.
 
 ## Test flow
 
-The automation does the following:
-
-1. Opens the Sauce Demo site
-2. Logs in with the standard user account
-3. Chooses a random product from the inventory
-4. Adds it to the cart
-5. Opens the cart and proceeds to checkout
-6. Fills in the checkout form
-7. Verifies the purchase is completed
+1. Open the Sauce Demo login page
+2. Log in with the standard test account
+3. Select a random product from the inventory and add it to the cart
+4. Open the cart and confirm the selected item is present
+5. Proceed to checkout and fill in the shipping details
+6. Complete the order and verify the confirmation message
 
 ## Default credentials
 
-- Username: `standard_user`
-- Password: `secret_sauce`
+Sauce Demo's standard test account (public, non-sensitive):
 
-## Project structure
+| Field | Value |
+|---|---|
+| Username | `standard_user` |
+| Password | `secret_sauce` |
 
-```text
-.
-├── package.json
-├── playwright.config.js
-├── README.md
-├── .gitignore
-├── page-objects/
-│   ├── LoginPage.js
-│   ├── InventoryPage.js
-│   ├── CartPage.js
-│   └── CheckoutPage.js
-├── tests/
-│   └── sauce-demo.spec.js
-└── playwright-report/
-```
+## Continuous integration
 
-## GitHub push steps
+Every push and pull request to `main`/`master` triggers [`playwright.yml`](.github/workflows/playwright.yml), which installs dependencies, installs the Chromium browser, runs `npm test`, and uploads the resulting HTML report as a workflow artifact (30-day retention) — regardless of whether the run passed or failed.
 
-To publish this repository to GitHub:
+## License
 
-```bash
-git remote add origin https://github.com/<your-user>/<your-repo>.git
-git branch -M main
-git push -u origin main
-```
-
-If you use GitHub CLI:
-
-```bash
-gh auth login
-gh repo create <your-repo> --public --source=. --remote=origin --push
-```
-
-## Notes
-
-- The test is intentionally written with a page object model to keep the logic clean and maintainable.
-- The product selection is randomized, but the flow remains deterministic because it validates the expected cart and completion states.
-- The flow was manually validated in the browser against Sauce Demo: login succeeded, a product was added, checkout completed, and the order confirmation page displayed "Thank you for your order!".
+No license file is included yet — add one (MIT is a common default for demo/reference projects like this) if you intend others to reuse this code.

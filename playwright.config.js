@@ -14,7 +14,7 @@ export default defineConfig({
   ],
   use: {
     baseURL: 'https://www.saucedemo.com',
-    headless: true,
+    headless: false,
     viewport: { width: 1440, height: 1200 },
     ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
