@@ -29,6 +29,8 @@ This project contains a Playwright JavaScript test framework that exercises the 
    npx playwright install --with-deps chromium
    ```
 
+3. If the npm registry is blocked in your environment, ensure your local registry access is allowed before installation.
+
 ## Run the test
 
 ```bash
@@ -82,7 +84,25 @@ The automation does the following:
 └── playwright-report/
 ```
 
+## GitHub push steps
+
+To publish this repository to GitHub:
+
+```bash
+git remote add origin https://github.com/<your-user>/<your-repo>.git
+git branch -M main
+git push -u origin main
+```
+
+If you use GitHub CLI:
+
+```bash
+gh auth login
+gh repo create <your-repo> --public --source=. --remote=origin --push
+```
+
 ## Notes
 
 - The test is intentionally written with a page object model to keep the logic clean and maintainable.
 - The product selection is randomized, but the flow remains deterministic because it validates the expected cart and completion states.
+- The flow was manually validated in the browser against Sauce Demo: login succeeded, a product was added, checkout completed, and the order confirmation page displayed "Thank you for your order!".
