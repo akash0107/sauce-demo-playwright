@@ -69,7 +69,7 @@ npm run test:debug    # run with Playwright Inspector
 npm run report        # open the last HTML report
 ```
 
-> **Note:** `playwright.config.js` currently sets `headless: false`, so the browser window is visible by default even via `npm test`. Tests also run with `--workers=1` (serial) rather than in parallel — useful for watching the flow locally, but worth revisiting for CI, since GitHub Actions runners have no display server and headed Chromium typically needs a virtual framebuffer (e.g. `xvfb-run`) to launch there.
+> **Note:** `playwright.config.js` sets `headless: false`, so the browser window is visible by default, both locally and in CI. Since GitHub Actions runners have no display server, the workflow runs the suite under [`xvfb-run`](https://www.x.org/releases/X11R7.6/doc/man/man1/Xvfb.1.xhtml) to give headed Chromium a virtual framebuffer to attach to. Tests also run with `--workers=1` (serial) rather than in parallel — useful for watching the flow run step by step.
 
 ## Test flow
 

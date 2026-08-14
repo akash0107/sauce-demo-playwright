@@ -24,8 +24,13 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Install virtual display (Xvfb)
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
       - name: Run Playwright tests
-        run: npm test
+        # playwright.config.js runs headed (headless: false), which needs a display.
+        # xvfb-run provides a virtual one so the same config works locally and in CI.
+        run: xvfb-run --auto-servernum npm test
 
       - uses: actions/upload-artifact@v4
         if: always()
